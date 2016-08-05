@@ -1,0 +1,20 @@
+{
+  "name": "tamabotchi",
+  "version": "0.0.1",
+  "description": "A tamabot",
+  "main": "tamabotchi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Crustev",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "htmlparser2": "^3.9.1",
+    "lexrank": "^1.0.4",
+    "request": "^2.74.0",
+    "request-promise-native": "^1.0.2",
+    "txtwiki": "git+https://github.com/joaomsa/txtwiki.js.git"
+  }
+}

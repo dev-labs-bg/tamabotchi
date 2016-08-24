@@ -1,0 +1,92 @@
+{
+    "subcategories": [
+        {
+            "name" : "Entertainment",
+            "subcategories": [
+                {
+                    "name": "Books",
+                    "id": 10
+                }, {
+                    "name": "Film",
+                    "id": 11
+                }, {
+                    "name": "Music",
+                    "id": 12
+                }, {
+                    "name": "Musicals & Theaters",
+                    "id": 13
+                }, {
+                    "name": "Television",
+                    "id": 14
+                }, {
+                    "name": "Video Games",
+                    "id": 15
+                }, {
+                    "name": "Board Games",
+                    "id": 16
+                }, {
+                    "name": "Comics",
+                    "id": 29
+                }, {
+                    "name": "Japanese Anime & Manga",
+                    "id": 31
+                }, {
+                    "name": "Cartoon & Animations",
+                    "id": 32
+                }
+            ]
+        }, {
+            "name": "Sciences",
+            "subcategories": [
+                {
+                    "name": "Science & Nature",
+                    "id": 17
+                }, {
+                    "name": "Computers",
+                    "id": 18
+                }, {
+                    "name": "Mathematics",
+                    "id": 19
+                }, {
+                    "name": "Geography",
+                    "id": 22
+                }, {
+                    "name": "History",
+                    "id": 23
+                }, {
+                    "name": "Mythology",
+                    "id": 20
+                }, {
+                    "name": "Gadgets",
+                    "id": 30
+                }
+            ]
+        }, {
+            "name": "General",
+            "subcategories": [
+                {
+                    "name": "General Knowledge",
+                    "id": 9
+                }, {
+                    "name": "Sports",
+                    "id": 21
+                }, {
+                    "name": "Politics",
+                    "id": 24
+                }, {
+                    "name": "Art",
+                    "id": 25
+                }, {
+                    "name": "Celebrities",
+                    "id": 26
+                }, {
+                    "name": "Animals",
+                    "id": 27
+                }, {
+                    "name": "Vehicles",
+                    "id": 28
+                }
+            ]
+        }
+    ]
+}

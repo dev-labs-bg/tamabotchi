@@ -79,7 +79,6 @@ function get_trivia_db() {
             return request(queryUrl).then(body => {
                 let resp = JSON.parse(body),
                     code = resp.response_code;
-                //console.log('Fetched: ', resp.results.length);
                 if (code === 4) {
                     return Promise.resolve([]);
                 } else if ((code === 0) || (code == 1)) {

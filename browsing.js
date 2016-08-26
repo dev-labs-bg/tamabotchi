@@ -1,13 +1,13 @@
 //adds the property `parent` and the method choose
 function process_categories(raw) {
-    function process(cat) {
-        if (cat.parent === undefined) {
-            cat.parent = null;
+    function process(curCategory) {
+        if (curCategory.parent === undefined) {
+            curCategory.parent = null;
         }
-        if (cat.subcategories) {
-            cat.subcategories.forEach((cat) => {
-                cat.parent = this;
-                process(cat);
+        if (curCategory.subcategories) {
+            curCategory.subcategories.forEach((subcategory) => {
+                subcategory.parent = curCategory;
+                process(subcategory);
             });
         }
     }
@@ -16,7 +16,6 @@ function process_categories(raw) {
 
     return raw;
 }
-//let categories = process_categories(require('./categories.json'));
 const categories = process_categories(require('./categories.json'));
 
 function pick_category(convo, curCategory, callback) {
@@ -24,9 +23,10 @@ function pick_category(convo, curCategory, callback) {
 
         let question = {};
         if (curCategory.title) {
-            question.text = `Pick a subcategory of ${curCategory.title}`;
+            question.text = `Pick a subcategory of ${curCategory.title} ` +
+                `(or type "Back")`;
         } else {
-            question.text = 'Picka a category';
+            question.text = 'Pick a category';
         }
 
         question.quick_replies = [];
@@ -35,15 +35,19 @@ function pick_category(convo, curCategory, callback) {
         });
 
         convo.ask(question, (response, convo) => {
+            console.log(curCategory.parent);
             let newCategory = null;
             curCategory.subcategories.forEach(cat => {
                 if (cat.title === response.text) {
                     newCategory = cat;
                 }
             });
+
+            convo.next();
             if (newCategory) {
-                convo.next();
                 pick_category(convo, newCategory, callback);
+            } else if ((/^back$/i.test(response.text)) && (curCategory.parent)) {
+                pick_category(convo, curCategory.parent, callback);
             } else {
                 convo.say('That \'s not a valid choice');
                 convo.next();
@@ -54,11 +58,11 @@ function pick_category(convo, curCategory, callback) {
         callback(curCategory, convo);
     }
 }
-
 function pick_difficulty(convo, callback) {
+    const difficulties = ['easy', 'medium', 'hard'];
     let question = {
         text: 'How difficult questions do you want ?',
-        quick_replies: ['easy', 'medium', 'hard']
+        quick_replies: difficulties
     };
     convo.ask(question, (response, convo) => {
         if (difficulties.includes(response.text)) {
@@ -71,7 +75,6 @@ function pick_difficulty(convo, callback) {
         }
     });
 }
-
 
 module.exports = {
     select_game_mode: (convo, callback) => {

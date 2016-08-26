@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request-promise-native');
 const interactive = require('node-wit').interactive
-const conf = require('./config.json').messenger_api;
+const conf = require('./config.json').fb;
 
 class SessionManager {
     constructor() {
@@ -89,6 +89,9 @@ module.exports.get_messenger_wit_server = (wit) => {
                             text,
                             witContext
                         ).then((newContext) => {
+                            if (newContext.quickreplies) {
+                                delete newContext.quickreplies;
+                            }
                             if (newContext.deleteSession) {
                                 sessionManager.delete_wit_session(witId);
                             } else {
@@ -108,7 +111,7 @@ module.exports.get_messenger_wit_server = (wit) => {
     return app;
 };
 
-function process_quick_replies(quick_replies = []) {
+module.exports.process_quick_replies = (quick_replies = []) => {
     let ans = [];
     quick_replies.forEach(rep => {
         ans.push({
@@ -117,11 +120,15 @@ function process_quick_replies(quick_replies = []) {
             payload: rep
         })
     });
-    return ans;
-}
+    //sending an empty array to the Messenger API throws an error
+    if (ans.length == 0) {
+        return undefined;
+    } else {
+        return ans;
+    }
+};
 
 function send_json(messageData) {
-    //console.log(messageData);
     return request({
         uri: conf.api_endpoint,
         qs: {access_token: conf.access_token},
@@ -140,7 +147,9 @@ function send_text_message(userId, text, quick_replies = []) {
         }
     }).then(() => {
         console.log(`${text} sent to ${userId}`);
-    });
+    }).catch(err => {  
+        console.log(err);
+    });;
 }
 
 module.exports.send = (request, response) => {
@@ -154,5 +163,7 @@ module.exports.send = (request, response) => {
     if (request.context.quickreplies) {
        quickreplies = quickreplies.concat(request.context.quickreplies);
     }
+    delete request.context.quickreplies;
+    //console.log(fbId, response.text, quickreplies);
     return send_text_message(fbId, response.text, quickreplies);
 };

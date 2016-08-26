@@ -1,7 +1,7 @@
 {
   "name": "tamabotchi",
   "version": "0.0.1",
-  "description": "A tamabot",
+  "description": "A tamabotchi",
   "main": "tamabotchi.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "botkit": "git+https://github.com/howdyai/botkit.git",
     "express": "^4.14.0",
     "htmlparser2": "^3.9.1",
     "lexrank": "^1.0.4",

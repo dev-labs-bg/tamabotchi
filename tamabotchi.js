@@ -1,7 +1,9 @@
+require('./models.js');
 const conf = require('./config.json');
 const browsing = require('./browsing.js');
 const Botkit = require('botkit');
 const quick_replies_middleware = require('./quick_replies_middleware.js');
+const dbsync = require('./dbsync.js');
 
 let controller = Botkit.facebookbot({
     debug: true,
@@ -39,7 +41,7 @@ controller.hears([/\bhello\b/i, /\bhi\b/i, /\bhowdy\b/i, /\bhey\b/i],
 controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
     console.log(message);
     bot.reply(message, {
-        text: `I'm a minimalistic bot and currently support a singe thing: playing`,
+        text: `I'm a simple bot and currently support a singe thing: playing`,
         quick_replies: ['play']
     });
 });
@@ -47,7 +49,8 @@ controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
 controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
     bot.startConversation(message, (err, convo) => {
         browsing.select_game_mode(convo, (gm, convo) => {
-            convo.say(`So you want ${gm.difficulty} questions from ${gm.category.title}`);
+            convo.say(`So you want ${gm.difficulty} questions ` +
+                      `from ${gm.category.title}`);
             convo.next();
         });
     });

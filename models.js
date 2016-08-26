@@ -1,18 +1,25 @@
 const mongoose = require('mongoose');
 const conf = require('./config.json');
+const hash_fuction = require('crypto').createHash('sha256');
 
-mongose.connect(conf.mongodb_url);
+mongoose.Promise = global.Promise;
+mongoose.connect(conf.mongodb_url);
 
 const questionSchema = new mongoose.Schema({
     category: {
         type: String,
-        index: true
+        index: 'hashed'
     }, 
-    type: {
+    difficulty: {
         type: String,
-        index: true
+        index: 'hashed'
     },
-    difficulty: String,
+    hash: {
+        type: String,
+        index: 'hashed',
+        unique: true
+    },
+    type: String,
     question: String,
     correct_answer: String,
     incorrect_answers: [String]
@@ -25,10 +32,10 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-const answeredQustionSchema = new mongoose.Schema({ 
+const answeredQuestionSchema = new mongoose.Schema({ 
     userId: {
         type: String,
-        index: true
+        index: 'hashed'
     },
     questionId: String,
     givenAnswer: String,
@@ -40,9 +47,6 @@ const answeredQustionSchema = new mongoose.Schema({
     }
 });
 
-module.exports = {
-    Question: mongoose.model('Question', questionSchema),
-    User: mongoose.model('User', userSchema),
-    AnsweredQuestion: mongoose.model('AnsweredQuestion', answeredQuestionSchema);
-}
-
+mongoose.model('Question', questionSchema);
+mongoose.model('User', userSchema);
+mongoose.model('AnsweredQuestion', answeredQuestionSchema);

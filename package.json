@@ -13,6 +13,7 @@
     "botkit": "git+https://github.com/howdyai/botkit.git",
     "express": "^4.14.0",
     "htmlparser2": "^3.9.1",
+    "later": "^1.2.0",
     "lexrank": "^1.0.4",
     "mongoose": "^4.5.10",
     "node-wit": "^4.1.0",

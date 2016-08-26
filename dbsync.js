@@ -6,6 +6,8 @@ const request = require('request-promise-native');
 const crypto = require('crypto');
 const mongoose = require('mongoose'),
     Question = mongoose.model('Question');
+const later = require('later');
+const conf = require('./config.json');
 
 //fetches the whole database from http://opentdb.com
 function get_trivia_db() {
@@ -48,7 +50,7 @@ function hash_str(str) {
     return crypto.createHash('sha256').update(str).digest('base64');
 }
 
-module.exports = () => {
+module.exports.sync = () => {
     let getHashes = Question.find().select('hash').exec().then(db => {
         let hashList = [];
         db.forEach(entry => {
@@ -75,9 +77,15 @@ module.exports = () => {
         }
     });
 };
+module.exports.schedule_sync = () => {
+    later.date.localTime();
+    let syncSchedule = later.parse.text(conf.dbsync_schedule);
+    later.setInterval(module.exports.sync, syncSchedule);
+};
 
 if (require.main === module) {
-    module.exports().then(docs => {
+    //Do a sync now
+    module.exports.sync().then(docs => {
         console.log(`${docs.length} questions inserted`);
         mongoose.connection.close();
     }).catch(err => {
@@ -85,3 +93,4 @@ if (require.main === module) {
         mongoose.connection.close();
     });
 }
+

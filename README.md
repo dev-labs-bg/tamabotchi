@@ -16,6 +16,8 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
         * `api_endpoint`
         * `webhook_endpoint`
     * `mongodb_url`
+    * `dbsync_schedule` (e.g. `at 00:00` [More details][laterDocs])
 6. Run with `node tamabotchi.js`
 
 [FB_DEV]: https://developers.facebook.com/quickstarts/?platform=web
+[laterDocs]: https://bunkat.github.io/later/parsers.html#text

@@ -3,7 +3,8 @@ const conf = require('./config.json');
 const browsing = require('./browsing.js');
 const Botkit = require('botkit');
 const quick_replies_middleware = require('./quick_replies_middleware.js');
-const dbsync = require('./dbsync.js');
+
+require('./dbsync.js').schedule_sync();
 
 let controller = Botkit.facebookbot({
     debug: true,

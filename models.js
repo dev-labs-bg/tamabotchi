@@ -1,3 +1,4 @@
+'use strict';
 const mongoose = require('mongoose');
 const config = require('./config.json');
 const hash_fuction = require('crypto').createHash('sha256');
@@ -28,13 +29,25 @@ const questionSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
     fbId: {
         type: String,
-        index: true
+        index: true,
+        unique: true
     }
 });
+userSchema.statics.findByFbId = (fbId) => {
+    let User = mongoose.model('User');
+    return User.findOne({'fbId': fbId}).then(user => {
+        console.log(user);
+        if (user === null) {
+            return new User({fbId: fbId}).save();
+        } else {
+            return Promise.resolve(user);
+        }
+    })
+};
 
 const answeredQuestionSchema = new mongoose.Schema({ 
     userId: {
-        type: String,
+        type: userSchema,
         index: 'hashed'
     },
     questionId: String,

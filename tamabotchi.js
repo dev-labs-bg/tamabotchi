@@ -1,13 +1,18 @@
+'use strict';
+const botkit = require('botkit');
+const mongoose = require('mongoose');
+const quick_replies_middleware = require('./quick_replies_middleware.js');
+
 require('./models.js');
 const config = require('./config.json');
 const trivia = require('./trivia.js');
-const botkit = require('botkit');
-const quick_replies_middleware = require('./quick_replies_middleware.js');
+const schedule_sync = require('./dbsync.js').schedule_sync;
 
-require('./dbsync.js').schedule_sync();
+const User = mongoose.model('User');
+schedule_sync();
 
 let controller = botkit.facebookbot({
-    debug: true,
+    //debug: true,
     access_token: config.FB.ACCESS_TOKEN,
     verify_token: config.FB.VERIFICATION_TOKEN
 });
@@ -48,11 +53,32 @@ controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
 });
 
 controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
+    /*let fbId = message.user;
+
+    User.findByFbId(fbId).then(user => {
+        return trivia.generate_question_list(user, {
+            category: {
+                key: 'General Knowledge'
+            },
+            difficulty: 'easy'
+        });
+    }).then(questions => {
+        console.log(questions);
+    }).catch(err => {
+        console.log(err);
+    });*/
     bot.startConversation(message, (err, convo) => {
-        trivia.select_game_mode(convo, (gm, convo) => {
-            convo.say(`So you want ${gm.difficulty} questions ` +
-                      `from ${gm.category.title}`);
+        trivia.select_game_mode(convo).then(({convo, gamemode}) => {
+            convo.say(`So you want ${gamemode.difficulty} questions ` +
+                      `from ${gamemode.category.title}`);
             convo.next();
+            let fbId = convo.source_message.user;
+            User.findByFbId(fbId).then(user => {
+                return trivia.generate_question_list(user, gamemode);
+            }).then(questions => {
+                console.log(questions);
+            });
         });
     });
 });
+

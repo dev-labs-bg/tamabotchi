@@ -1,6 +1,7 @@
 'use strict';
 const mongoose = require('mongoose');
 const Question = mongoose.model('Question');
+const shuffle = require('knuth-shuffle').knuthShuffle;
 const QUESTIONS_PER_SESSION = 10;
 
 //adds the property `parent` and the method choose
@@ -83,10 +84,69 @@ function pick_difficulty(convo) {
                     convo: convo
                 });
             } else {
-                convo.say('We don\'t have THAT difficult questions. Pick something reasonable.');
+                convo.say('We don\'t have THAT difficult questions. Pick ' +
+                          'something reasonable.');
                 convo.next();
                 resolve(pick_difficulty(convo));
             }
+        });
+    });
+}
+
+function ask_questions({user, questions, convo}) {
+    return new Promise((resolve, reject) => {
+        if (!questions.length) {
+            resolve(convo);
+            return;
+        }
+
+        let question = questions[questions.length - 1];
+
+        let curAsk = {
+            text: question.question,
+            quick_replies: []
+        };
+
+        let answers = question.incorrectAnswers
+            .concat(question.correctAnswer);
+        answers = shuffle(answers);
+
+        if (question.type === 'multiple') {
+            let ansLetter = 'A';
+            answers.forEach(ans => {
+                curAsk.text += `\n ${ansLetter}: ${ans}`;
+                curAsk.quick_replies.push(ansLetter);
+                ansLetter = String.fromCharCode(ansLetter.charCodeAt(0) + 1);
+            });
+        } else {
+            curAsk.quick_replies = ['True', 'False'];
+        }
+
+        convo.ask(curAsk, (response, convo) => {
+            if (curAsk.quick_replies.includes(response.text)) {
+                let correct = false;
+                if (question.type === 'multiple') {
+                    let id = response.text.charCodeAt(0) - 'A'.charCodeAt(0);
+                    correct = answers[id] === question.correctAnswer;
+                } else {
+                    correct = response.text === question.correctAnswer;
+                }
+
+                if (correct) {
+                    convo.say('Correct !!!');
+                    convo.next();
+                    questions.pop();
+                } else {
+                    convo.say('Wrong answer');
+                    convo.next();
+                    questions.pop();
+                }
+            } else {
+                convo.say('I didn\'t quite understand you. '
+                          + 'Let\'s try again');
+                          convo.next();
+            }
+            resolve(ask_questions({user, questions, convo}));
         });
     });
 }
@@ -106,12 +166,12 @@ module.exports = {
         });
     }, 
     generate_question_list: (user, gamemode) => {
-        console.log('generate quesitons');
         return Question.aggregate({
             $match: {
                 category: gamemode.category.key,
                 difficulty: gamemode.difficulty
             }
         }).sample(QUESTIONS_PER_SESSION).exec();
-    }
+    }, 
+    ask_questions: ask_questions
 };

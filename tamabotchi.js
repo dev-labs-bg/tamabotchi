@@ -1,4 +1,5 @@
 'use strict';
+const co = require('co');
 const botkit = require('botkit');
 const mongoose = require('mongoose');
 const quick_replies_middleware = require('./quick_replies_middleware.js');
@@ -68,16 +69,24 @@ controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
         console.log(err);
     });*/
     bot.startConversation(message, (err, convo) => {
-        trivia.select_game_mode(convo).then(({convo, gamemode}) => {
-            convo.say(`So you want ${gamemode.difficulty} questions ` +
-                      `from ${gamemode.category.title}`);
+        co(function* () {
+            let selectGamemodeAnswer = yield trivia.select_game_mode(convo);
+
+            convo = selectGamemodeAnswer.convo;
+            let gamemode = selectGamemodeAnswer.gamemode;
+
+            convo.say(`Preparing ${gamemode.difficulty} questions ` +
+                      `from ${gamemode.category.title} ...`);
             convo.next();
+
             let fbId = convo.source_message.user;
-            User.findByFbId(fbId).then(user => {
-                return trivia.generate_question_list(user, gamemode);
-            }).then(questions => {
-                console.log(questions);
-            });
+            let user = yield User.findByFbId(fbId);
+            console.log(user);
+            let questions = yield trivia.generate_question_list(user, gamemode);
+            console.log(questions);
+            convo = yield trivia.ask_questions({user, questions, convo});
+            convo.say('That was it, hope you enjoyed it');
+            convo.next();
         });
     });
 });

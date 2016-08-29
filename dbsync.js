@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose'),
     Question = mongoose.model('Question');
 const later = require('later');
-const conf = require('./config.json');
+const config = require('./config.json');
 
 //fetches the whole database from http://opentdb.com
 function get_trivia_db() {
@@ -42,8 +42,17 @@ function get_trivia_db() {
                 }
             });
         })();
-    })
+    }).then(questions => {
+        //format the questions as in models.js
+        questions.forEach(q => {
+            q.correctAnswer = q.correct_answer;
+            q.incorrectAnswers = q.incorrect_answers;
 
+            delete q.correct_answer;
+            delete q.incorrect_answers;
+        });
+        return Promise.resolve(questions);
+    });
 }
 
 function hash_str(str) {
@@ -79,12 +88,13 @@ module.exports.sync = () => {
 };
 module.exports.schedule_sync = () => {
     later.date.localTime();
-    let syncSchedule = later.parse.text(conf.dbsync_schedule);
+    let syncSchedule = later.parse.text(config.DB.SYNC_SCHEDULE);
     later.setInterval(module.exports.sync, syncSchedule);
 };
 
 if (require.main === module) {
     //Do a sync now
+    require('./models.js');
     module.exports.sync().then(docs => {
         console.log(`${docs.length} questions inserted`);
         mongoose.connection.close();

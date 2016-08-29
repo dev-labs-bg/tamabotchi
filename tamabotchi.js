@@ -1,15 +1,15 @@
 require('./models.js');
-const conf = require('./config.json');
-const browsing = require('./browsing.js');
-const Botkit = require('botkit');
+const config = require('./config.json');
+const trivia = require('./trivia.js');
+const botkit = require('botkit');
 const quick_replies_middleware = require('./quick_replies_middleware.js');
 
 require('./dbsync.js').schedule_sync();
 
-let controller = Botkit.facebookbot({
+let controller = botkit.facebookbot({
     debug: true,
-    access_token: conf.fb.access_token,
-    verify_token: conf.fb.verify_token
+    access_token: config.FB.ACCESS_TOKEN,
+    verify_token: config.FB.VERIFICATION_TOKEN
 });
 controller.middleware.send.use(quick_replies_middleware);
 
@@ -49,7 +49,7 @@ controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
 
 controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
     bot.startConversation(message, (err, convo) => {
-        browsing.select_game_mode(convo, (gm, convo) => {
+        trivia.select_game_mode(convo, (gm, convo) => {
             convo.say(`So you want ${gm.difficulty} questions ` +
                       `from ${gm.category.title}`);
             convo.next();

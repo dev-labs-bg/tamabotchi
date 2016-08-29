@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-const conf = require('./config.json');
+const config = require('./config.json');
 const hash_fuction = require('crypto').createHash('sha256');
 
 mongoose.Promise = global.Promise;
-mongoose.connect(conf.mongodb_url);
+mongoose.connect(config.DB.MONGO_URL);
 
 const questionSchema = new mongoose.Schema({
     category: {
@@ -21,8 +21,8 @@ const questionSchema = new mongoose.Schema({
     },
     type: String,
     question: String,
-    correct_answer: String,
-    incorrect_answers: [String]
+    correctAnswer: String,
+    incorrectAnswers: [String]
 });
 
 const userSchema = new mongoose.Schema({

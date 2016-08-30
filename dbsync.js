@@ -27,6 +27,8 @@ function get_trivia_db() {
                 let resp = JSON.parse(body),
                     code = resp.response_code;
 
+                console.log(perQuery);
+
                 if ((code === 4) || (code === 1)) {
                     if (perQuery == 1) {
                         return Promise.resolve([]);
@@ -95,12 +97,25 @@ module.exports.schedule_sync = () => {
 if (require.main === module) {
     //Do a sync now
     require('./models.js');
-    module.exports.sync().then(docs => {
+    /*get_trivia_db().then(questions => {
+        //console.log('hi');
+        let categoryCnt = {};
+        questions.forEach(q => {
+            //console.log(q);
+            if (q.category in categoryCnt) {
+                categoryCnt[q.category]++;
+            } else {
+                categoryCnt[q.category] = 1;
+            }
+        });
+        console.log(categoryCnt);
+    });*/
+    /*module.exports.sync().then(docs => {
         console.log(`${docs.length} questions inserted`);
         mongoose.connection.close();
     }).catch(err => {
         console.log(err);
         mongoose.connection.close();
-    });
+    });*/
 }
 

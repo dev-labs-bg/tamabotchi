@@ -47,10 +47,11 @@ userSchema.statics.findByFbId = (fbId) => {
 
 const answeredQuestionSchema = new mongoose.Schema({ 
     userId: {
-        type: userSchema,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         index: 'hashed'
     },
-    questionId: String,
+    question: questionSchema,
     givenAnswer: String,
     answeredCorrectly: String,
     timeAnswered: Date,

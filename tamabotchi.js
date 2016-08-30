@@ -32,7 +32,7 @@ controller.on('message_received', (bot, message) => {
     //let processed = messenger.process_quick_replies(quick_replies);
     //console.log(message);
 
-    bot.reply(message, message.text);
+    //bot.reply(message, message.text);
 });
 
 controller.hears([/\bhello\b/i, /\bhi\b/i, /\bhowdy\b/i, /\bhey\b/i], 
@@ -67,19 +67,23 @@ controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
     });*/
     bot.startConversation(message, (err, convo) => {
         co(function* () {
-            let selectGamemodeAnswer = yield trivia.select_game_mode(convo);
+//            let selectCategoryRes = yield trivia.select_category(convo);
+//
+//            convo = selectCategoryRes.convo;
+//            let category = selectCategoryRes.category;
+            let category = {
+                title: 'Mathematics (mock)',
+                key: 'Science: Mathematics'
+            };
 
-            convo = selectGamemodeAnswer.convo;
-            let gamemode = selectGamemodeAnswer.gamemode;
-
-            convo.say(`Preparing ${gamemode.difficulty} questions ` +
-                      `from ${gamemode.category.title} ...`);
+            convo.say(`Preparing questions from ${category.title}...`);
             convo.next();
 
             let fbId = convo.source_message.user;
             let user = yield User.findByFbId(fbId);
             console.log(user);
-            let questions = yield trivia.generate_question_list(user, gamemode);
+
+            let questions = yield trivia.generate_question_list(user, category);
             console.log(questions);
             convo = yield trivia.ask_questions({user, questions, convo});
             convo.say('That was it, hope you enjoyed it');

@@ -2,8 +2,13 @@
 const co = require('co');
 const mongoose = require('mongoose');
 const Question = mongoose.model('Question');
+const AnsweredQuestion = mongoose.model('AnsweredQuestion');
 const shuffle = require('knuth-shuffle').knuthShuffle;
+
+const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const QUESTIONS_PER_SESSION = 10;
+const CORRECT_ANSWER_TIMEOUT = 24 * 3600 * 1000;
+const WRONG_ANSWER_TIMEOUT = 12 * 3600 * 1000;
 
 //adds the property `parent` and the method choose
 function process_categories(raw) {
@@ -72,16 +77,15 @@ function pick_category(convo, curCategory) {
 }
 function pick_difficulty(convo) {
     return new Promise((resolve, reject) => {
-        const difficulties = ['easy', 'medium', 'hard'];
         let question = {
             text: 'How difficult questions do you want ?',
-            quick_replies: difficulties
+            quick_replies: DIFFICULTIES
         };
         convo.ask(question, (response, convo) => {
-            if (difficulties.includes(response.text)) {
+            if (DIFFICULTIES.includes(response.text)) {
                 convo.next();
                 resolve({
-                    difficulty:response.text,
+                    difficulty: response.text,
                     convo: convo
                 });
             } else {
@@ -125,23 +129,36 @@ function ask_questions({user, questions, convo}) {
 
         convo.ask(curAsk, (response, convo) => {
             if (curAsk.quick_replies.includes(response.text)) {
-                let correct = false;
+                let curAnswer = response.text;
                 if (question.type === 'multiple') {
                     let id = response.text.charCodeAt(0) - 'A'.charCodeAt(0);
-                    correct = answers[id] === question.correctAnswer;
-                } else {
-                    correct = response.text === question.correctAnswer;
+                    curAnswer = answers[id];
                 }
+
+                let correct = curAnswer === question.correctAnswer;;
+                let timeout = correct
+                    ? CORRECT_ANSWER_TIMEOUT
+                    : WRONG_ANSWER_TIMEOUT;
+
+                let answeredQuestion = new AnsweredQuestion({
+                    userId: user._id,
+                    question: question,
+                    givenAnswer: correct,
+                    answeredCorrectly: correct,
+                    timeAsked: Date.now(),
+                    notAskedUntil: new Date(Date.now() + timeout)
+                });
+                answeredQuestion.save();
 
                 if (correct) {
                     convo.say('Correct !!!');
-                    convo.next();
-                    questions.pop();
                 } else {
                     convo.say('Wrong answer');
-                    convo.next();
-                    questions.pop();
+                    convo.say(`Correct answer is ${question.correctAnswer}`);
                 }
+                convo.next();
+                questions.pop();
+
             } else {
                 convo.say('I didn\'t quite understand you. '
                           + 'Let\'s try again');
@@ -153,29 +170,100 @@ function ask_questions({user, questions, convo}) {
 }
 
 module.exports = {
-    select_game_mode: convo => {
-        return co(function* () {
-            let categoryRes = yield pick_category(convo, categories);
-            let difficultyRes = yield pick_difficulty(categoryRes.convo);
-            let ans = {
-                convo: difficultyRes.convo,
-                gamemode: {
-                    category: categoryRes.category,
-                    difficulty: difficultyRes.difficulty
+    select_category: convo => {
+         return pick_category(convo, categories);
+    },
+    generate_question_list: (user, category) => {
+        console.log(category);
+        return AnsweredQuestion.find({
+            'userId': user._id,
+            'question.category': category.key
+        })
+        .select('question._id question.difficulty notAskedUntil -_id')
+        .exec()
+        .then(answered => {
+            console.log(answered);
+            let answeredByDifficulty = {};
+
+            DIFFICULTIES.forEach(difficulty => {
+                answeredByDifficulty[difficulty] = [];
+            });
+            answered.forEach(entry => {
+                answeredByDifficulty[entry.question.difficulty]
+                    .push(entry.question._id);
+            });
+
+            console.log(answeredByDifficulty);
+
+            let answeredNotForbiden = [];
+
+            let now = Date.now();
+            answered.forEach(entry => {
+                if (entry.notAskedUntil < now) {
+                    answeredNotForbiden.push(entry.question._id);
                 }
-            };
-            console.log(ans.gamemode);
-            return yield Promise.resolve(ans);
+            });
+            console.log(answeredNotForbiden);
+            
+            let queries = [];
+            DIFFICULTIES.forEach(difficulty => {
+                console.log(difficulty);
+                queries.push(Question.aggregate({
+                        $match: {
+                            category: category.key,
+                            difficulty: difficulty,
+                            _id: {
+                                $nin: answeredByDifficulty[difficulty]
+                            }
+                        }
+                    })
+                    .sample(QUESTIONS_PER_SESSION)
+                    .exec()
+                );
+            });
+            console.log(queries);
+
+            queries.push(Question
+                .aggregate({
+                    $match: {
+                        category: category.key,
+                        _id: {
+                            $in: answeredNotForbiden
+                        }
+                    }
+                })
+                .sample(QUESTIONS_PER_SESSION)
+                .exec()
+            );
+
+            console.log(queries);
+            return Promise.all(queries);
+        }).then(queryResults => {
+            console.log(queryResults);
+            let questions = [];
+            for (let i = 0;i < queryResults.length;i++) {
+                for (let j = 0;j < queryResults[i].length;j++) {
+                    questions.push(queryResults[i][j]);
+
+                    if (questions.length === QUESTIONS_PER_SESSION) {
+                        break;
+                    }
+                }
+
+                if (questions.length === QUESTIONS_PER_SESSION) {
+                    break;
+                }
+            }
+            console.log(questions);
+            return Promise.resolve(questions);
         });
-    }, 
-    generate_question_list: (user, gamemode) => {
         //console.log('generate quesitons');
-        return Question.aggregate({
+        /*return Question.aggregate({
             $match: {
                 category: gamemode.category.key,
                 difficulty: gamemode.difficulty
             }
-        }).sample(QUESTIONS_PER_SESSION).exec();
+        }).sample(QUESTIONS_PER_SESSION).exec();*/
     }, 
     ask_questions: ask_questions
 };

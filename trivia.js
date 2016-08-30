@@ -1,4 +1,5 @@
 'use strict';
+const co = require('co');
 const mongoose = require('mongoose');
 const Question = mongoose.model('Question');
 const shuffle = require('knuth-shuffle').knuthShuffle;
@@ -153,19 +154,22 @@ function ask_questions({user, questions, convo}) {
 
 module.exports = {
     select_game_mode: convo => {
-        return pick_category(convo, categories).then(({category, convo}) => {
-            return pick_difficulty(convo).then(({difficulty, convo}) => {
-                return Promise.resolve({
-                    convo: convo,
-                    gamemode: {
-                        category: category,
-                        difficulty: difficulty
-                    }
-                });
-            });
+        return co(function* () {
+            let categoryRes = yield pick_category(convo, categories);
+            let difficultyRes = yield pick_difficulty(categoryRes.convo);
+            let ans = {
+                convo: difficultyRes.convo,
+                gamemode: {
+                    category: categoryRes.category,
+                    difficulty: difficultyRes.difficulty
+                }
+            };
+            console.log(ans.gamemode);
+            return yield Promise.resolve(ans);
         });
     }, 
     generate_question_list: (user, gamemode) => {
+        //console.log('generate quesitons');
         return Question.aggregate({
             $match: {
                 category: gamemode.category.key,

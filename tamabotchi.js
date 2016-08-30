@@ -26,17 +26,14 @@ controller.setupWebserver(8000, (err, webserver) => {
     });
 });
 
-/*controller.on('message_received', (bot, message) => {
+controller.on('message_received', (bot, message) => {
     //bot.reply(message, 'Hahahahahah, I\'m using botkit now :P');
-    let quick_replies = ['ouou', 'o'];
-    let processed = messenger.process_quick_replies(quick_replies);
-    console.log(message);
+    //let quick_replies = ['ouou', 'o'];
+    //let processed = messenger.process_quick_replies(quick_replies);
+    //console.log(message);
 
-    bot.reply(message, {
-        'text': 'i hate text',
-        'quick_replies': processed
-    });
-});*/
+    bot.reply(message, message.text);
+});
 
 controller.hears([/\bhello\b/i, /\bhi\b/i, /\bhowdy\b/i, /\bhey\b/i], 
                  'message_received', (bot, message) => {

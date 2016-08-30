@@ -67,14 +67,21 @@ function pick_category(convo, curCategory) {
                 resolve(pick_category(convo, newCategory));
             } else if ((/^back$/i.test(response.text)) && (curCategory.parent)) {
                 resolve(pick_category(convo, curCategory.parent));
+            } else if (/^quit$/i.test(response.text)) {
+                convo.say('OK, I am leaving you alone. If you change your mind'
+                          + ' I\'ll be here. Bye');
+                convo.next();
             } else {
-                convo.say('That \'s not a valid choice');
+                convo.say('That \'s not a valid choice (type "quit" to leave)');
                 convo.next();
                 resolve(pick_category(convo, curCategory));
             }
         });
     });
 }
+/*
+ * @deprecated
+ */
 function pick_difficulty(convo) {
     return new Promise((resolve, reject) => {
         let question = {
@@ -105,7 +112,7 @@ function ask_questions({user, questions, convo}) {
             return;
         }
 
-        let question = questions[questions.length - 1];
+        let question = questions[0];
 
         let curAsk = {
             text: question.question,
@@ -157,12 +164,16 @@ function ask_questions({user, questions, convo}) {
                     convo.say(`Correct answer is ${question.correctAnswer}`);
                 }
                 convo.next();
-                questions.pop();
+                questions.shift();
 
+            } else if (/^quit$/i.test(response.text)) {
+                convo.say('Well that\'s a shame. Anyways, see you');
+                convo.next();
+                return;
             } else {
-                convo.say('I didn\'t quite understand you. '
-                          + 'Let\'s try again');
-                          convo.next();
+                convo.say('Just tap on one of the available answers, no need to'
+                          + ' be creative ;). (Or type "quit")');
+                convo.next();
             }
             resolve(ask_questions({user, questions, convo}));
         });
@@ -174,7 +185,6 @@ module.exports = {
          return pick_category(convo, categories);
     },
     generate_question_list: (user, category) => {
-        console.log(category);
         return AnsweredQuestion.find({
             'userId': user._id,
             'question.category': category.key
@@ -182,7 +192,6 @@ module.exports = {
         .select('question._id question.difficulty notAskedUntil -_id')
         .exec()
         .then(answered => {
-            console.log(answered);
             let answeredByDifficulty = {};
 
             DIFFICULTIES.forEach(difficulty => {
@@ -197,13 +206,11 @@ module.exports = {
 
             let answeredNotForbiden = [];
 
-            let now = Date.now();
             answered.forEach(entry => {
-                if (entry.notAskedUntil < now) {
+                if (entry.notAskedUntil < Date.now()) {
                     answeredNotForbiden.push(entry.question._id);
                 }
             });
-            console.log(answeredNotForbiden);
             
             let queries = [];
             DIFFICULTIES.forEach(difficulty => {
@@ -221,7 +228,6 @@ module.exports = {
                     .exec()
                 );
             });
-            console.log(queries);
 
             queries.push(Question
                 .aggregate({
@@ -236,10 +242,8 @@ module.exports = {
                 .exec()
             );
 
-            console.log(queries);
             return Promise.all(queries);
         }).then(queryResults => {
-            console.log(queryResults);
             let questions = [];
             for (let i = 0;i < queryResults.length;i++) {
                 for (let j = 0;j < queryResults[i].length;j++) {
@@ -257,13 +261,6 @@ module.exports = {
             console.log(questions);
             return Promise.resolve(questions);
         });
-        //console.log('generate quesitons');
-        /*return Question.aggregate({
-            $match: {
-                category: gamemode.category.key,
-                difficulty: gamemode.difficulty
-            }
-        }).sample(QUESTIONS_PER_SESSION).exec();*/
     }, 
     ask_questions: ask_questions
 };

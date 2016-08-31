@@ -43,14 +43,14 @@ controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
 
 function play_game(convo) {
     co(function* () {
-        let selectCategoryRes = yield trivia.select_category(convo);
+        /*let selectCategoryRes = yield trivia.select_category(convo);
 
         convo = selectCategoryRes.convo;
-        let category = selectCategoryRes.category;
-        /*            let category = {
+        let category = selectCategoryRes.category;*/
+             let category = {
 title: 'Mathematics (mock)',
 key: 'Science: Mathematics'
-};*/
+};
 
         convo.say(`Preparing questions from ${category.title}...`);
         convo.next();
@@ -83,12 +83,14 @@ key: 'Science: Mathematics'
                     }
                 }
             ]);
-            //convo.next();
-        } else {
-            convo = yield trivia.ask_questions({user, questions, convo});
-            convo.say('That was it, hope you enjoyed it');
-            convo.next();
-        }
+            return;
+        } 
+        let askQuestionRes = yield trivia.ask_questions({user, questions, convo});
+        //console.log(askQuestionRes);
+        //console.log(askQuestionRes.answeredQuestions);
+        convo = askQuestionRes.convo;
+        convo.say('Let me crung some numebr nu');
+        convo.next();
     });
 
 }

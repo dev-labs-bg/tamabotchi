@@ -71,6 +71,7 @@ function pick_category(convo, curCategory) {
                 convo.say('OK, I am leaving you alone. If you change your mind'
                           + ' I\'ll be here. Bye');
                 convo.next();
+                reject(convo);
             } else {
                 convo.say('That \'s not a valid choice (type "quit" to leave)');
                 convo.next();
@@ -108,7 +109,10 @@ function pick_difficulty(convo) {
 function ask_questions({user, questions, convo}) {
     return new Promise((resolve, reject) => {
         if (!questions.length) {
-            resolve(convo);
+            resolve({
+                answeredQuestions: [],
+                convo: convo
+            });
             return;
         }
 
@@ -143,6 +147,14 @@ function ask_questions({user, questions, convo}) {
                 }
 
                 let correct = curAnswer === question.correctAnswer;;
+                if (correct) {
+                    convo.say('Correct !!!');
+                } else {
+                    convo.say('Wrong answer');
+                    convo.say(`Correct answer is ${question.correctAnswer}`);
+                }
+                convo.next();
+                questions.shift();
                 let timeout = correct
                     ? CORRECT_ANSWER_TIMEOUT
                     : WRONG_ANSWER_TIMEOUT;
@@ -155,16 +167,11 @@ function ask_questions({user, questions, convo}) {
                     timeAsked: Date.now(),
                     notAskedUntil: new Date(Date.now() + timeout)
                 });
-                answeredQuestion.save();
 
-                if (correct) {
-                    convo.say('Correct !!!');
-                } else {
-                    convo.say('Wrong answer');
-                    convo.say(`Correct answer is ${question.correctAnswer}`);
-                }
-                convo.next();
-                questions.shift();
+                ask_questions({user, questions, convo}).then(result => {
+                    result.answeredQuestions.push(answeredQuestion);
+                    resolve(result);
+                });
 
             } else if (/^quit$/i.test(response.text)) {
                 convo.say('Well that\'s a shame. Anyways, see you');
@@ -174,8 +181,8 @@ function ask_questions({user, questions, convo}) {
                 convo.say('Just tap on one of the available answers, no need to'
                           + ' be creative ;). (Or type "quit")');
                 convo.next();
+                resolve(ask_questions({user, questions, convo}));
             }
-            resolve(ask_questions({user, questions, convo}));
         });
     });
 }

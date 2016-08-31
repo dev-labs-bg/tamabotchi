@@ -1,6 +1,7 @@
 'use strict';
 const mongoose = require('mongoose');
 const config = require('./config.json');
+const level = require('./level.js');
 const hash_fuction = require('crypto').createHash('sha256');
 
 mongoose.Promise = global.Promise;
@@ -31,6 +32,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         index: true,
         unique: true
+    },
+    xp: {
+        type: Number,
+        default: 0
     }
 });
 userSchema.statics.findByFbId = (fbId) => {
@@ -44,6 +49,16 @@ userSchema.statics.findByFbId = (fbId) => {
         }
     })
 };
+userSchema.methods.getLevel = function() {
+    console.log('I xist');
+    console.log(this);
+    console.log(this.xp);
+    console.log(this.model);
+    return level.level_from_xp(this.xp);
+};
+userSchema.methods.xpForNextLevel = function() {
+    return level.xp_for_next_level(this.xp);
+};
 
 const answeredQuestionSchema = new mongoose.Schema({ 
     userId: {
@@ -53,7 +68,7 @@ const answeredQuestionSchema = new mongoose.Schema({
     },
     question: questionSchema,
     givenAnswer: String,
-    answeredCorrectly: String,
+    answeredCorrectly: Boolean,
     timeAnswered: Date,
     notAskedUntil: {
         type: Date,

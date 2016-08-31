@@ -7,6 +7,7 @@ const quick_replies_middleware = require('./quick_replies_middleware.js');
 require('./models.js');
 const config = require('./config.json');
 const trivia = require('./trivia.js');
+const progression = require('./progression.js');
 const schedule_sync = require('./dbsync.js').schedule_sync;
 
 const User = mongoose.model('User');
@@ -86,11 +87,16 @@ key: 'Science: Mathematics'
             return;
         } 
         let askQuestionRes = yield trivia.ask_questions({user, questions, convo});
-        //console.log(askQuestionRes);
-        //console.log(askQuestionRes.answeredQuestions);
         convo = askQuestionRes.convo;
-        convo.say('Let me crung some numebr nu');
-        convo.next();
+
+        console.log(askQuestionRes);
+        //console.log(askQuestionRes.answeredQuestions);
+        let gainedXP = yield progression.calculate_session_xp(user,
+            askQuestionRes.answeredQuestions);
+
+        convo = progression.display_session_progression(convo, user, gainedXP);
+        //convo.say(`Congrats you gained ${gainedXP} experience points (XP)`);
+        //convo.next();
     });
 
 }

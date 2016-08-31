@@ -6,7 +6,7 @@ const AnsweredQuestion = mongoose.model('AnsweredQuestion');
 const shuffle = require('knuth-shuffle').knuthShuffle;
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const QUESTIONS_PER_SESSION = 10;
+const QUESTIONS_PER_SESSION = 6;
 const CORRECT_ANSWER_TIMEOUT = 24 * 3600 * 1000;
 const WRONG_ANSWER_TIMEOUT = 12 * 3600 * 1000;
 
@@ -30,7 +30,7 @@ function process_categories(raw) {
 }
 const categories = process_categories(require('./categories.json'));
 
-function pick_category(convo, curCategory) {
+function select_category(convo, curCategory) {
     return new Promise((resolve, reject) => {
         if (!curCategory.subcategories) {
             resolve({
@@ -64,9 +64,9 @@ function pick_category(convo, curCategory) {
 
             convo.next();
             if (newCategory) {
-                resolve(pick_category(convo, newCategory));
+                resolve(select_category(convo, newCategory));
             } else if ((/^back$/i.test(response.text)) && (curCategory.parent)) {
-                resolve(pick_category(convo, curCategory.parent));
+                resolve(select_category(convo, curCategory.parent));
             } else if (/^quit$/i.test(response.text)) {
                 convo.say('OK, I am leaving you alone. If you change your mind'
                           + ' I\'ll be here. Bye');
@@ -75,7 +75,7 @@ function pick_category(convo, curCategory) {
             } else {
                 convo.say('That \'s not a valid choice (type "quit" to leave)');
                 convo.next();
-                resolve(pick_category(convo, curCategory));
+                resolve(select_category(convo, curCategory));
             }
         });
     });
@@ -189,7 +189,7 @@ function ask_questions({user, questions, convo}) {
 
 module.exports = {
     select_category: convo => {
-         return pick_category(convo, categories);
+         return select_category(convo, categories);
     },
     generate_question_list: (user, category) => {
         return AnsweredQuestion.find({

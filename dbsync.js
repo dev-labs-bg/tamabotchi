@@ -110,12 +110,12 @@ if (require.main === module) {
         });
         console.log(categoryCnt);
     });*/
-    /*module.exports.sync().then(docs => {
+    module.exports.sync().then(docs => {
         console.log(`${docs.length} questions inserted`);
         mongoose.connection.close();
     }).catch(err => {
         console.log(err);
         mongoose.connection.close();
-    });*/
+    });
 }
 

@@ -21,6 +21,12 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
     * `DB`
         * `MONGO_URL`
         * `SYNC_SCHEDULE` (e.g. `at 00:00` [More details][later-docs])
+    * `BOTKIT_PORT` (Port for botkit server, webhook is at 
+       [/facebook/receive][#])
+    * `WEB`
+        * `PORT`
+        * `ROOT_URL`
+        * `PUBLIC_ROOT`
 7. Run with `node tamabotchi.js`
 
 [libgd-github]: https://github.com/y-a-v-a/node-gd

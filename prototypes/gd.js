@@ -4,7 +4,7 @@ const gd = require('node-gd');
 const mongoose = require('mongoose');
 const progression = require('../progression.js');
 
-progression.generate_session_image(2000, -1900).then(res => {
+progression.generate_session_image(2000, 1000).then(res => {
     console.log('success', res);
     mongoose.connection.close();
 }).catch(err => {

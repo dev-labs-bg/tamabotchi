@@ -2,63 +2,49 @@
 const co = require('co');
 const botkit = require('botkit');
 const mongoose = require('mongoose');
-const quick_replies_middleware = require('./quick_replies_middleware.js');
+const messenger_middleware = require('./messenger-middleware.js');
 
-require('./models.js');
 const config = require('./config.json');
 const trivia = require('./trivia.js');
 const progression = require('./progression.js');
 const schedule_sync = require('./dbsync.js').schedule_sync;
 
 const User = mongoose.model('User');
-schedule_sync();
+//schedule_sync();
 
 let controller = botkit.facebookbot({
-    //debug: true,
     access_token: config.FB.ACCESS_TOKEN,
     verify_token: config.FB.VERIFICATION_TOKEN
 });
-controller.middleware.send.use(quick_replies_middleware);
+controller.middleware.send.use(messenger_middleware.quick_replies);
+controller.middleware.send.use(messenger_middleware.image);
 
 let bot = controller.spawn({});
-controller.setupWebserver(8000, (err, webserver) => {
-    controller.createWebhookEndpoints(webserver, bot, () => {
-        console.log('ONLINE\n');
-    });
-});
 
 controller.hears([/\bhello\b/i, /\bhi\b/i, /\bhowdy\b/i, /\bhey\b/i], 
-                 'message_received', (bot, message) => {
-    console.log('heard him');
+        'message_received', (bot, message) => {
     bot.reply(message, `Hey, didn't see you there. If you need anything, ` + 
               `just type "help"`);
 });
-
 controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
-    console.log(message);
     bot.reply(message, {
-        text: `I'm a simple bot and currently support a singe thing: playing`,
-        quick_replies: ['play']
+        text: `To start a game type "play", to view your progress type`
+            + ` "progress"`,
+        quick_replies: ['Play a game', 'View progress']
     });
 });
-
 function play_game(convo) {
     co(function* () {
-        /*let selectCategoryRes = yield trivia.select_category(convo);
+        let selectCategoryRes = yield trivia.select_category(convo);
 
         convo = selectCategoryRes.convo;
-        let category = selectCategoryRes.category;*/
-             let category = {
-title: 'Mathematics (mock)',
-key: 'Science: Mathematics'
-};
+        let category = selectCategoryRes.category;
 
         convo.say(`Preparing questions from ${category.title}...`);
         convo.next();
 
         let fbId = convo.source_message.user;
         let user = yield User.findByFbId(fbId);
-        console.log(user);
 
         let questions = yield trivia.generate_question_list(user, category);
         if (!questions.length) {
@@ -86,37 +72,52 @@ key: 'Science: Mathematics'
             ]);
             return;
         } 
+
         let askQuestionRes = yield trivia.ask_questions({user, questions, convo});
         convo = askQuestionRes.convo;
 
-        console.log(askQuestionRes);
-        //console.log(askQuestionRes.answeredQuestions);
         let gainedXP = yield progression.calculate_session_xp(user,
             askQuestionRes.answeredQuestions);
 
-        convo = progression.display_session_progression(convo, user, gainedXP);
-        //convo.say(`Congrats you gained ${gainedXP} experience points (XP)`);
-        //convo.next();
+        let sessionProgression = yield progression.sessionProgression(user, gainedXP);
+        convo.say(sessionProgression);
+        convo.next();
+
+        user.xp += gainedXP;
+        user.save();
+
     });
-
 }
-
 controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
     bot.startConversation(message, (err, convo) => {
         play_game(convo);
     });
 });
-
+controller.hears([/\bstats\b/i, /\bprogression\b/i, /\bprogress\b/i, /\bxp\b/i],
+        'message_received', (bot, message) => {
+    User.findByFbId(message.user).then(user => {
+        return progression.userProgression(user);
+    }).then(reply => {
+        bot.reply(message, reply);
+    });
+});
 controller.on('message_received', (bot, message) => {
     bot.reply(message, {
-        text: 'Well, I\'m not sure I understand. Type "help" for help or "play"'
-                + ' to just start a game',
-        quick_replies: ['help', 'play'],
+        text: 'Well, I\'m not sure I understand. If you need a hand, type'
+            + ' "help"',
+        quick_replies: ['help'],
     });
     return false;
-    //let quick_replies = ['ouou', 'o'];
-    //let processed = messenger.process_quick_replies(quick_replies);
-    //console.log(message);
+ });
 
-    //bot.reply(message, message.text);
-});
+module.exports.setupServer = () => {
+    return new Promise((resolve, reject) => {
+        controller.setupWebserver(config.BOTKIT_PORT, (err, webserver) => {
+            if (err) {
+                reject(err);
+            } else {
+                controller.createWebhookEndpoints(webserver, bot, resolve);
+            }
+        });
+    });
+};

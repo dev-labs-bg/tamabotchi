@@ -50,10 +50,6 @@ userSchema.statics.findByFbId = (fbId) => {
     })
 };
 userSchema.methods.getLevel = function() {
-    console.log('I xist');
-    console.log(this);
-    console.log(this.xp);
-    console.log(this.model);
     return level.level_from_xp(this.xp);
 };
 userSchema.methods.xpForNextLevel = function() {

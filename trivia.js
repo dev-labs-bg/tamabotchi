@@ -6,7 +6,7 @@ const AnsweredQuestion = mongoose.model('AnsweredQuestion');
 const shuffle = require('knuth-shuffle').knuthShuffle;
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const QUESTIONS_PER_SESSION = 6;
+const QUESTIONS_PER_SESSION = 10;
 const CORRECT_ANSWER_TIMEOUT = 24 * 3600 * 1000;
 const WRONG_ANSWER_TIMEOUT = 12 * 3600 * 1000;
 
@@ -54,7 +54,6 @@ function select_category(convo, curCategory) {
         });
 
         convo.ask(question, (response, convo) => {
-            console.log(curCategory.parent);
             let newCategory = null;
             curCategory.subcategories.forEach(cat => {
                 if (cat.title === response.text) {
@@ -209,7 +208,6 @@ module.exports = {
                     .push(entry.question._id);
             });
 
-            console.log(answeredByDifficulty);
 
             let answeredNotForbiden = [];
 
@@ -221,7 +219,6 @@ module.exports = {
             
             let queries = [];
             DIFFICULTIES.forEach(difficulty => {
-                console.log(difficulty);
                 queries.push(Question.aggregate({
                         $match: {
                             category: category.key,
@@ -265,7 +262,6 @@ module.exports = {
                     break;
                 }
             }
-            console.log(questions);
             return Promise.resolve(questions);
         });
     }, 

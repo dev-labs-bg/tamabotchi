@@ -12,7 +12,7 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
 4. Install and start mongodb. On Arch:
     1. Install `sudo pacman -S mongodb`
     2. Start `sudo systemctl start mongodb`
-    3. Autostart (on boot) `sude systemctl enable mongodb`
+    3. Autostart (on boot) `sudo systemctl enable mongodb`
 5. Create a new app from [FB's website][fb-dev]
 6. Add a `config.json` file, containing:
     * `FB`
@@ -27,7 +27,9 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
         * `PORT`
         * `ROOT_URL`
         * `PUBLIC_ROOT`
-7. Run with `node tamabotchi.js`
+    * `IMAGE_FONT`
+   For **help** view `config.json.sample`
+7. Run with `node app.js`
 
 [libgd-github]: https://github.com/y-a-v-a/node-gd
 [fb-dev]: https://developers.facebook.com/quickstarts/?platform=web

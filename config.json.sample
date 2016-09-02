@@ -1,0 +1,18 @@
+{
+    "FB": {
+        "ACCESS_TOKEN": "",
+        "VERIFICATION_TOKEN": ""
+    },
+    "DB": {
+        "MONGO_URL": "mongodb://localhost:27017/",
+        "SYNC_SCHEDULE": "at 00:00"
+    },
+    "BOTKIT_PORT": 8000,
+    "WEB": {
+        "PORT": 4000,
+        "ROOT_URL": "",
+        "PUBLIC_ROOT": "/public"
+    },
+    "IMAGE_FONT":  "./resources/fonts/roboto-regular.ttf"
+}
+    

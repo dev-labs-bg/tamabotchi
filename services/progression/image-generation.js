@@ -13,7 +13,6 @@ const PNG_COMPRESSION = 5;
 const IMAGE_WIDTH = 300;
 
 //Relative to the root direcotory
-const FONT = './resources/fonts/roboto-regular.ttf';
 const FONT_SIZE = 15;
 const PADDING = 15;
 const LINE_SPACING = 5;
@@ -35,7 +34,7 @@ function textRowY(r) {
 function rowH(r) {
     return 2 * PADDING + r * FONT_SIZE + Math.max(0, r - 1) * LINE_SPACING;
 }
-function textWidth(image, text, fontSize = FONT_SIZE, font = FONT) {
+function textWidth(image, text, fontSize = FONT_SIZE, font = config.IMAGE_FONT) {
     let boundingBox = image.stringFTBBox(0xffffff, font, fontSize, 0, 0, 0, text);
     //xLowerRight - xLowerLet
     return Math.ceil(boundingBox[2] - boundingBox[0]);
@@ -54,7 +53,7 @@ function drawText(image, text, row, align = 'center', color = COLOR.TEXT) {
         x = Math.floor((IMAGE_WIDTH - width) / 2);
     } 
 
-    image.stringFT(color, FONT, FONT_SIZE, 0, x, y, text);
+    image.stringFT(color, config.IMAGE_FONT, FONT_SIZE, 0, x, y, text);
 }
 function drawXpBar(image, prevXp, row, gainedXp = 0) {
     let curLevel = level.levelFromXp(prevXp + gainedXp);

@@ -2,15 +2,14 @@
 const LEVEL_CONSTANT = 0.1
 
 module.exports = {
-    level_from_xp: xp => {
-        console.log('level.level_from_xp');
+    levelFromXp: xp => {
         return Math.floor(LEVEL_CONSTANT * Math.sqrt(xp)) + 1;
     },
-    xp_for_level: level => {
+    xpForLevel: level => {
         return Math.ceil(Math.pow((level - 1) / LEVEL_CONSTANT, 2));
     },
-    xp_for_next_level: xp => {
-        let nextLevel = module.exports.level_from_xp(xp);
-        return Math.ceil(Math.pow(nextLevel / LEVEL_CONSTANT, 2));
+    xpForNextLevel: xp => {
+        let nextLevel =  module.exports.levelFromXp(xp) + 1;
+        return module.exports.xpForLevel(nextLevel);
     }
 };

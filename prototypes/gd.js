@@ -1,17 +1,7 @@
 'use strict'
-require('../models.js');
 const gd = require('node-gd');
-const mongoose = require('mongoose');
-const progression = require('../progression.js');
 
-progression.generate_session_image(2000, 1000).then(res => {
-    console.log('success', res);
-    mongoose.connection.close();
-}).catch(err => {
-    console.log(err);
-});
-
-/*let img = gd.createTrueColor(200, 200, (error, img) => {
+let img = gd.createTrueColor(200, 200, (error, img) => {
     img.colorAllocate(0, 69, 69);
 
     let foregroundColor = gd.trueColor(255, 153, 153);
@@ -40,4 +30,4 @@ progression.generate_session_image(2000, 1000).then(res => {
             console.log(err);
         }
     });
-});*/
+});

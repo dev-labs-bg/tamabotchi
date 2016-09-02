@@ -6,8 +6,8 @@ const later = require('later');
 const mongoose = require('mongoose');
 const request = require('request-promise-native');
 
-const config = require('./config.json');
-const Question = require('./models/question.js');
+const config = require('../config.json');
+const Question = require('../models/question.js');
 
 //fetches the whole database from http://opentdb.com
 function getTriviaDb() {

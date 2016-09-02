@@ -1,17 +1,17 @@
 'use strict';
 const co = require('co');
 const mongoose = require('mongoose');
-const Question = require('./models/question.js');
-const AnsweredQuestion = require('./models/answered-question.js');
+const Question = require('../models/question.js');
+const AnsweredQuestion = require('../models/answered-question.js');
 const shuffle = require('knuth-shuffle').knuthShuffle;
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const QUESTIONS_PER_SESSION = 10;
+const QUESTIONS_PER_SESSION = 1;
 const CORRECT_ANSWER_TIMEOUT = 24 * 3600 * 1000;
 const WRONG_ANSWER_TIMEOUT = 12 * 3600 * 1000;
 
 //adds the property `parent` and the method choose
-function process_categories(raw) {
+function processCategories(raw) {
     function process(curCategory) {
         if (curCategory.parent === undefined) {
             curCategory.parent = null;
@@ -28,9 +28,9 @@ function process_categories(raw) {
 
     return raw;
 }
-const categories = process_categories(require('./categories.json'));
+const categories = processCategories(require('../resources/categories.json'));
 
-function select_category(convo, curCategory) {
+function selectCategory(convo, curCategory) {
     return new Promise((resolve, reject) => {
         if (!curCategory.subcategories) {
             resolve({
@@ -64,9 +64,9 @@ function select_category(convo, curCategory) {
 
             convo.next();
             if (newCategory) {
-                resolve(select_category(convo, newCategory));
+                resolve(selectCategory(convo, newCategory));
             } else if ((/^back$/i.test(response.text)) && (curCategory.parent)) {
-                resolve(select_category(convo, curCategory.parent));
+                resolve(selectCategory(convo, curCategory.parent));
             } else if (/^quit$/i.test(response.text)) {
                 convo.say('OK, I am leaving you alone. If you change your mind'
                           + ' I\'ll be here. Bye');
@@ -75,38 +75,13 @@ function select_category(convo, curCategory) {
             } else {
                 convo.say('That \'s not a valid choice (type "quit" to leave)');
                 convo.next();
-                resolve(select_category(convo, curCategory));
-            }
-        });
-    });
-}
-/*
- * @deprecated
- */
-function pick_difficulty(convo) {
-    return new Promise((resolve, reject) => {
-        let question = {
-            text: 'How difficult questions do you want ?',
-            quick_replies: DIFFICULTIES
-        };
-        convo.ask(question, (response, convo) => {
-            if (DIFFICULTIES.includes(response.text)) {
-                convo.next();
-                resolve({
-                    difficulty: response.text,
-                    convo: convo
-                });
-            } else {
-                convo.say('We don\'t have THAT difficult questions. Pick ' +
-                          'something reasonable.');
-                convo.next();
-                resolve(pick_difficulty(convo));
+                resolve(selectCategory(convo, curCategory));
             }
         });
     });
 }
 
-function ask_questions({user, questions, convo}) {
+function askQuestions({user, questions, convo}) {
     return new Promise((resolve, reject) => {
         if (!questions.length) {
             resolve({
@@ -170,7 +145,7 @@ function ask_questions({user, questions, convo}) {
                     notAskedUntil: new Date(Date.now() + timeout)
                 });
 
-                ask_questions({user, questions, convo}).then(result => {
+                askQuestions({user, questions, convo}).then(result => {
                     result.answeredQuestions.push(answeredQuestion);
                     resolve(result);
                 });
@@ -190,10 +165,10 @@ function ask_questions({user, questions, convo}) {
 }
 
 module.exports = {
-    select_category: convo => {
-         return select_category(convo, categories);
+    selectCategory: convo => {
+         return selectCategory(convo, categories);
     },
-    generate_question_list: (user, category) => {
+    generateQuestionList: (user, category) => {
         return AnsweredQuestion.find({
             'userId': user._id,
             'question.category': category.key
@@ -268,5 +243,5 @@ module.exports = {
             return Promise.resolve(questions);
         });
     }, 
-    ask_questions: ask_questions
+    askQuestions: askQuestions
 };

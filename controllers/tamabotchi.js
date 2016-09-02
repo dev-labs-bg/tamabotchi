@@ -2,20 +2,20 @@
 const co = require('co');
 const botkit = require('botkit');
 const mongoose = require('mongoose');
-const messenger_middleware = require('./messenger-middleware.js');
+const messengerMiddleware = require('../middleware/messenger.js');
 
-const config = require('./config.json');
-const trivia = require('./trivia.js');
-const progression = require('./progression.js');
+const config = require('../config.json');
+const trivia = require('../services/trivia.js');
+const progression = require('../services/progression');
 
-const User = require('./models/user.js');
+const User = require('../models/user.js');
 
 let controller = botkit.facebookbot({
     access_token: config.FB.ACCESS_TOKEN,
     verify_token: config.FB.VERIFICATION_TOKEN
 });
-controller.middleware.send.use(messenger_middleware.quick_replies);
-controller.middleware.send.use(messenger_middleware.image);
+controller.middleware.send.use(messengerMiddleware.quickReplies);
+controller.middleware.send.use(messengerMiddleware.image);
 
 let bot = controller.spawn({});
 
@@ -31,9 +31,9 @@ controller.hears([/\bhelp\b/i], 'message_received', (bot, message) => {
         quick_replies: ['Play a game', 'View progress']
     });
 });
-function play_game(convo) {
+function playGame(convo) {
     co(function* () {
-        let selectCategoryRes = yield trivia.select_category(convo);
+        let selectCategoryRes = yield trivia.selectCategory(convo);
 
         convo = selectCategoryRes.convo;
         let category = selectCategoryRes.category;
@@ -44,7 +44,7 @@ function play_game(convo) {
         let fbId = convo.source_message.user;
         let user = yield User.findByFbId(fbId);
 
-        let questions = yield trivia.generate_question_list(user, category);
+        let questions = yield trivia.generateQuestionList(user, category);
         if (!questions.length) {
             convo.ask({
                 text: `Sorry, but there weren't any questions from `
@@ -57,7 +57,7 @@ function play_game(convo) {
                     callback: (response, convo) => {
                         convo.say('OK, let\'s begin');
                         convo.next();
-                        play_game(convo);
+                        playGame(convo);
                     }
                 }, {
                     default: true,
@@ -71,24 +71,24 @@ function play_game(convo) {
             return;
         } 
 
-        let askQuestionRes = yield trivia.ask_questions({user, questions, convo});
+        let askQuestionRes = yield trivia.askQuestions({user, questions, convo});
         convo = askQuestionRes.convo;
 
-        let gainedXP = yield progression.calculate_session_xp(user,
+        let gainedXp = yield progression.calculateSessionXp(user,
             askQuestionRes.answeredQuestions);
 
-        let sessionProgression = yield progression.sessionProgression(user, gainedXP);
+        let sessionProgression = yield progression.sessionProgression(user, gainedXp);
         convo.say(sessionProgression);
         convo.next();
 
-        user.xp += gainedXP;
+        user.xp += gainedXp;
         user.save();
 
     });
 }
 controller.hears([/\bplay\b/i], 'message_received', (bot, message) => {
     bot.startConversation(message, (err, convo) => {
-        play_game(convo);
+        playGame(convo);
     });
 });
 controller.hears([/\bstats\b/i, /\bprogression\b/i, /\bprogress\b/i, /\bxp\b/i],

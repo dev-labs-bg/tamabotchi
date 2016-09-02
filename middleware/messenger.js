@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-    quick_replies: (bot, message, next) => {
+    quickReplies: (bot, message, next) => {
         if (message.quick_replies) {
             let processed = [];
             message.quick_replies.forEach(rep => {

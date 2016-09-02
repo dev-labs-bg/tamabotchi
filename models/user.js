@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const level = require('../level.js');
 
 const schema = new mongoose.Schema({
     fbId: {
@@ -21,12 +20,6 @@ schema.statics.findByFbId = function(fbId) {
             return Promise.resolve(user);
         }
     })
-};
-schema.methods.getLevel = function() {
-    return level.level_from_xp(this.xp);
-};
-schema.methods.xpForNextLevel = function() {
-    return level.xp_for_next_level(this.xp);
 };
 
 module.exports = mongoose.model('User', schema);

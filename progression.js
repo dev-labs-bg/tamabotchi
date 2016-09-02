@@ -5,8 +5,8 @@ const randomstring = require('randomstring');
 
 const config = require('./config.json');
 const level = require('./level.js');
-const AnsweredQuestion = mongoose.model('AnsweredQuestion');
-const User = mongoose.model('User');
+const AnsweredQuestion = require('./models/answered-question.js');
+const User = require('./models/user.js');
 
 const BASE_XP = {
     'easy': 15,

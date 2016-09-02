@@ -1,8 +1,8 @@
 'use strict';
 const co = require('co');
 const mongoose = require('mongoose');
-const Question = mongoose.model('Question');
-const AnsweredQuestion = mongoose.model('AnsweredQuestion');
+const Question = require('./models/question.js');
+const AnsweredQuestion = require('./models/answered-question.js');
 const shuffle = require('knuth-shuffle').knuthShuffle;
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];

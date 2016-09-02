@@ -4,9 +4,10 @@ if (require.main === module) {
 }
 const request = require('request-promise-native');
 const crypto = require('crypto');
-const mongoose = require('mongoose'),
-    Question = mongoose.model('Question');
+const mongoose = require('mongoose');
 const later = require('later');
+
+const Question = require('./models/question.js');
 const config = require('./config.json');
 
 //fetches the whole database from http://opentdb.com

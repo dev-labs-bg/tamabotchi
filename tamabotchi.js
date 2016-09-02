@@ -9,7 +9,7 @@ const trivia = require('./trivia.js');
 const progression = require('./progression.js');
 const schedule_sync = require('./dbsync.js').schedule_sync;
 
-const User = mongoose.model('User');
+const User = require('./models/user.js');
 //schedule_sync();
 
 let controller = botkit.facebookbot({

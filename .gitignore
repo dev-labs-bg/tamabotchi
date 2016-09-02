@@ -1,6 +1,8 @@
 config.json
 node_modules
 questions.json
+output.png
+prototypes/output.png
 
 .*.swp
 .*.swo

@@ -1,7 +1,10 @@
 const express = require('express');
-
+const mongoose = require('mongoose');
 const config = require('./config.json');
-const models = require('./models.js');
+
+mongoose.Promise = global.Promise;
+mongoose.connect(config.DB.MONGO_URL);
+
 const tamabotchi = require('./tamabotchi.js');
 
 let expressApp = express();

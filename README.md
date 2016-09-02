@@ -22,7 +22,7 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
         * `MONGO_URL`
         * `SYNC_SCHEDULE` (e.g. `at 00:00` [More details][later-docs])
     * `BOTKIT_PORT` (Port for botkit server, webhook is at 
-       [/facebook/receive][#])
+      [/facebook/receive](#))
     * `WEB`
         * `PORT`
         * `ROOT_URL`

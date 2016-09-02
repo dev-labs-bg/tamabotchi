@@ -43,14 +43,15 @@ function select_category(convo, curCategory) {
         let question = {};
         if (curCategory.title) {
             question.text = `Pick a subcategory of ${curCategory.title} ` +
-                `(or type "Back")`;
+                `(or type "Back"): `;
         } else {
-            question.text = 'Pick a category';
+            question.text = 'Pick a category: ';
         }
 
         question.quick_replies = [];
-        curCategory.subcategories.forEach(sub => {
-            question.quick_replies.push(sub.title); 
+        curCategory.subcategories.forEach(subCategory => {
+            question.text += `\n - "${subCategory.title}"`;
+            question.quick_replies.push(subCategory.title); 
         });
 
         convo.ask(question, (response, convo) => {
@@ -133,8 +134,10 @@ function ask_questions({user, questions, convo}) {
                 curAsk.quick_replies.push(ansLetter);
                 ansLetter = String.fromCharCode(ansLetter.charCodeAt(0) + 1);
             });
+            curAsk.text += '\n(Answer by typing "A", "B", "C" or "D")';
         } else {
             curAsk.quick_replies = ['True', 'False'];
+            curAsk.text += '\n(Answer by typing "True" or "False")';
         }
 
         convo.ask(curAsk, (response, convo) => {

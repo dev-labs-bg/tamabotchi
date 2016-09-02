@@ -7,10 +7,8 @@ const messenger_middleware = require('./messenger-middleware.js');
 const config = require('./config.json');
 const trivia = require('./trivia.js');
 const progression = require('./progression.js');
-const schedule_sync = require('./dbsync.js').schedule_sync;
 
 const User = require('./models/user.js');
-//schedule_sync();
 
 let controller = botkit.facebookbot({
     access_token: config.FB.ACCESS_TOKEN,

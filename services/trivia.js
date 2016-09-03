@@ -6,7 +6,7 @@ const AnsweredQuestion = require('../models/answered-question.js');
 const shuffle = require('knuth-shuffle').knuthShuffle;
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const QUESTIONS_PER_SESSION = 1;
+const QUESTIONS_PER_SESSION = 8;
 const CORRECT_ANSWER_TIMEOUT = 24 * 3600 * 1000;
 const WRONG_ANSWER_TIMEOUT = 12 * 3600 * 1000;
 

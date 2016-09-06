@@ -1,8 +1,8 @@
 {
   "name": "tamabotchi",
-  "version": "0.0.1",
-  "description": "A tamabotchi",
-  "main": "tamabotchi.js",
+  "version": "0.2.0",
+  "description": "A facebook chatbot for trivia games",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

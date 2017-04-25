@@ -7,7 +7,7 @@ This is a Tamagochi-like bot for Facebook messenger. Feed at your own risk.
     * On Debian/Ubuntu `sudo apt-get install libgd2-dev`
     * On RHEL/CentOS `sudo yum install gd-devel`
     * On Arch `sudo pacman -S gd`
-    * For more info check out the [Github repository][ligbd-github]
+    * For more info check out the [Github repository][libgd-github]
 3. Install the dependencies `node install` 
 4. Install and start mongodb. On Arch:
     1. Install `sudo pacman -S mongodb`
